@@ -1,6 +1,8 @@
 // TODO: add feature for serde, bytemuck and zerocopy support
 // TODO: add docs
 // TODO: add license
+// TODO: add wgsl test
+// TODO: add examples
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -8,16 +10,16 @@ pub struct EncodedUnitVector3([f32; 2]);
 
 impl EncodedUnitVector3 {
     pub fn from_array(unit_vector: [f32; 3]) -> Self {
+        let mut n = unit_vector;
+
         debug_assert!(
-            (length_2(unit_vector) - 1.0).abs() < 0.0001,
+            (length_2(n) - 1.0).abs() < 0.0001,
             "Argument must be normalized"
         );
 
-        let mut n = unit_vector;
         let inv_sum = 1.0 / (n[0].abs() + n[1].abs() + n[2].abs());
         n[0] *= inv_sum;
         n[1] *= inv_sum;
-        n[2] *= inv_sum;
         if n[2] < 0.0 {
             let x = n[0];
             n[0] = if n[0] >= 0.0 { 1.0 } else { -1.0 } * (1.0 - n[1].abs());
@@ -95,7 +97,7 @@ impl EncodedUnitVector3U8 {
     }
 
     pub fn to_array(&self) -> [f32; 3] {
-        EncodedUnitVector3::from_raw([Self::to_f32(self.0[0]), Self::to_f32(self.0[1])]).to_array()
+        EncodedUnitVector3([Self::to_f32(self.0[0]), Self::to_f32(self.0[1])]).to_array()
     }
 
     pub fn raw(&self) -> [u8; 2] {
@@ -135,8 +137,8 @@ mod tests {
 
     #[test]
     fn test_error_rate_f32() {
-        let expected_avg_error = 9.62025e-7;
-        let expected_max_error = 0.044240557;
+        let expected_avg_error = 1.0932611e-5;
+        let expected_max_error = 0.00048828125;
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3::from_array(unit_vector).to_array(),
             expected_avg_error,
@@ -147,8 +149,8 @@ mod tests {
     #[test]
     #[cfg(feature = "half")]
     fn test_error_rate_f16() {
-        let expected_avg_error = 0.00248607;
-        let expected_max_error = 69.13236; // TODO: why is this so high?
+        let expected_avg_error = 0.00013977697;
+        let expected_max_error = 0.001035801;
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3F16::from_array(unit_vector).to_array(),
             expected_avg_error,
@@ -158,8 +160,8 @@ mod tests {
 
     #[test]
     fn test_error_rate_u8() {
-        let expected_avg_error = 0.11473576;
-        let expected_max_error = 1920.8251; // TODO: why is this so high?
+        let expected_avg_error = 0.01223357;
+        let expected_max_error = 0.03299934;
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3U8::from_array(unit_vector).to_array(),
             expected_avg_error,
@@ -174,38 +176,22 @@ mod tests {
         let sample_size = 100000;
         let unit_vectors = generate_unit_vectors(sample_size);
 
-        let mut acc_error_x: f32 = 0.0;
-        let mut acc_error_y: f32 = 0.0;
-        let mut acc_error_z: f32 = 0.0;
-        let mut max_error_x: f32 = 0.0;
-        let mut max_error_y: f32 = 0.0;
-        let mut max_error_z: f32 = 0.0;
+        let mut acc_error: f32 = 0.0;
+        let mut max_error: f32 = 0.0;
 
         for unit_vector in unit_vectors {
             let decoded = codec(unit_vector);
 
-            let error_x = ((unit_vector[0] - decoded[0]) / unit_vector[0]).abs();
-            acc_error_x += error_x;
-            max_error_x = max_error_x.max(error_x);
-
-            let error_y = ((unit_vector[1] - decoded[1]) / unit_vector[1]).abs();
-            acc_error_y += error_y;
-            max_error_y = max_error_y.max(error_y);
-
-            let error_z = ((unit_vector[2] - decoded[2]) / unit_vector[2]).abs();
-            acc_error_z += error_z;
-            max_error_z = max_error_z.max(error_z);
+            let error = angle_between(unit_vector, decoded);
+            acc_error += error;
+            max_error = max_error.max(error);
         }
 
-        acc_error_x /= sample_size as f32;
-        acc_error_y /= sample_size as f32;
-        acc_error_z /= sample_size as f32;
+        let avg_error = acc_error / sample_size as f32;
+        // dbg!(avg_error, acc_error, sample_size);
 
-        let avg_error = length_2([acc_error_x, acc_error_y, acc_error_z]).sqrt();
-        assert_eq!(avg_error, expected_avg_error);
-
-        let max_error = length_2([max_error_x, max_error_y, max_error_z]).sqrt();
         assert_eq!(max_error, expected_max_error);
+        assert_eq!(avg_error, expected_avg_error);
     }
 
     fn generate_unit_vectors(count: usize) -> Vec<[f32; 3]> {
@@ -221,5 +207,13 @@ mod tests {
                 ])
             })
             .collect()
+    }
+
+    fn angle_between(v1: [f32; 3], v2: [f32; 3]) -> f32 {
+        let result = ((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2])
+            / (length_2(v1).sqrt() * length_2(v2).sqrt()))
+        .clamp(-1.0, 1.0)
+        .acos();
+        result
     }
 }
