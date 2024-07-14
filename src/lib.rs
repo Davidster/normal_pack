@@ -2,13 +2,13 @@
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
-pub struct EncodedUnitVector([f32; 2]);
+pub struct EncodedUnitVector3([f32; 2]);
 
-impl EncodedUnitVector {
+impl EncodedUnitVector3 {
     pub fn from_array(unit_vector: [f32; 3]) -> Self {
         debug_assert!(
             (length_2(unit_vector) - 1.0).abs() < 0.0001,
-            "EncodedUnitVector is only compatible with unit vectors"
+            "Argument must be normalized"
         );
 
         let mut n = unit_vector;
@@ -49,15 +49,15 @@ impl EncodedUnitVector {
 mod float16 {
     use half::f16;
 
-    use crate::EncodedUnitVector;
+    use crate::EncodedUnitVector3;
 
     #[repr(C)]
     #[derive(Copy, Clone, Debug, Default, PartialEq)]
-    pub struct EncodedUnitVectorF16([f16; 2]);
+    pub struct EncodedUnitVector3F16([f16; 2]);
 
-    impl EncodedUnitVectorF16 {
+    impl EncodedUnitVector3F16 {
         pub fn from_array(unit_vector: [f32; 3]) -> Self {
-            let encoded_f32 = EncodedUnitVector::from_array(unit_vector);
+            let encoded_f32 = EncodedUnitVector3::from_array(unit_vector);
             Self([
                 f16::from_f32(encoded_f32.0[0]),
                 f16::from_f32(encoded_f32.0[1]),
@@ -69,7 +69,7 @@ mod float16 {
         }
 
         pub fn to_array(&self) -> [f32; 3] {
-            EncodedUnitVector::from_raw([self.0[0].to_f32(), self.0[1].to_f32()]).to_array()
+            EncodedUnitVector3::from_raw([self.0[0].to_f32(), self.0[1].to_f32()]).to_array()
         }
 
         pub fn raw(&self) -> [f16; 2] {
@@ -79,7 +79,7 @@ mod float16 {
 }
 
 #[cfg(feature = "half")]
-pub use float16::EncodedUnitVectorF16;
+pub use float16::EncodedUnitVector3F16;
 
 #[inline]
 fn length_2(v: [f32; 3]) -> f32 {
@@ -102,7 +102,7 @@ mod tests {
     fn test_error_rate_f32() {
         let expected_avg_error = 9.62025e-7;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector::from_array(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3::from_array(unit_vector).to_array(),
             expected_avg_error,
         );
     }
@@ -112,7 +112,7 @@ mod tests {
     fn test_error_rate_f16() {
         let expected_avg_error = 0.00248607;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVectorF16::from_array(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3F16::from_array(unit_vector).to_array(),
             expected_avg_error,
         );
     }
