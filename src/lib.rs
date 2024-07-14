@@ -1,5 +1,6 @@
 // TODO: add feature for serde, bytemuck and zerocopy support
 // TODO: add docs
+// TODO: add license
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
