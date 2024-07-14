@@ -170,8 +170,8 @@ mod tests {
     where
         F: Fn([f32; 3]) -> [f32; 3],
     {
-        let count = 100000;
-        let unit_vectors = generate_unit_vectors(count);
+        let sample_size = 100000;
+        let unit_vectors = generate_unit_vectors(sample_size);
 
         let mut acc_error_x: f32 = 0.0;
         let mut acc_error_y: f32 = 0.0;
@@ -196,9 +196,9 @@ mod tests {
             max_error_z = max_error_z.max(error_z);
         }
 
-        acc_error_x /= count as f32;
-        acc_error_y /= count as f32;
-        acc_error_z /= count as f32;
+        acc_error_x /= sample_size as f32;
+        acc_error_y /= sample_size as f32;
+        acc_error_z /= sample_size as f32;
 
         let avg_error = length_2([acc_error_x, acc_error_y, acc_error_z]).sqrt();
         assert_eq!(avg_error, expected_avg_error);
