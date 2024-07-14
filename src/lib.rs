@@ -1,4 +1,5 @@
 // TODO: add feature for serde, bytemuck and zerocopy support
+// TODO: add docs
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -78,6 +79,39 @@ mod float16 {
     }
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct EncodedUnitVector3U8([u8; 2]);
+
+impl EncodedUnitVector3U8 {
+    pub fn from_array(unit_vector: [f32; 3]) -> Self {
+        let encoded_f32 = EncodedUnitVector3::from_array(unit_vector);
+        Self([Self::to_u8(encoded_f32.0[0]), Self::to_u8(encoded_f32.0[1])])
+    }
+
+    pub fn from_raw(raw: [u8; 2]) -> Self {
+        Self(raw)
+    }
+
+    pub fn to_array(&self) -> [f32; 3] {
+        EncodedUnitVector3::from_raw([Self::to_f32(self.0[0]), Self::to_f32(self.0[1])]).to_array()
+    }
+
+    pub fn raw(&self) -> [u8; 2] {
+        self.0
+    }
+
+    #[inline]
+    fn to_u8(from: f32) -> u8 {
+        (((from + 1.0) * 0.5) * 255.0) as u8
+    }
+
+    #[inline]
+    fn to_f32(from: u8) -> f32 {
+        (from as f32 / 255.0) * 2.0 - 1.0
+    }
+}
+
 #[cfg(feature = "half")]
 pub use float16::EncodedUnitVector3F16;
 
@@ -113,6 +147,15 @@ mod tests {
         let expected_avg_error = 0.00248607;
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3F16::from_array(unit_vector).to_array(),
+            expected_avg_error,
+        );
+    }
+
+    #[test]
+    fn test_error_rate_u8() {
+        let expected_avg_error = 0.11473576;
+        test_error_rate_impl(
+            |unit_vector| crate::EncodedUnitVector3U8::from_array(unit_vector).to_array(),
             expected_avg_error,
         );
     }
