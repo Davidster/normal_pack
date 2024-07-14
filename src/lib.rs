@@ -135,9 +135,11 @@ mod tests {
     #[test]
     fn test_error_rate_f32() {
         let expected_avg_error = 9.62025e-7;
+        let expected_max_error = 0.044240557;
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3::from_array(unit_vector).to_array(),
             expected_avg_error,
+            expected_max_error,
         );
     }
 
@@ -145,46 +147,64 @@ mod tests {
     #[cfg(feature = "half")]
     fn test_error_rate_f16() {
         let expected_avg_error = 0.00248607;
+        let expected_max_error = 69.13236; // TODO: why is this so high?
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3F16::from_array(unit_vector).to_array(),
             expected_avg_error,
+            expected_max_error,
         );
     }
 
     #[test]
     fn test_error_rate_u8() {
         let expected_avg_error = 0.11473576;
+        let expected_max_error = 1920.8251; // TODO: why is this so high?
         test_error_rate_impl(
             |unit_vector| crate::EncodedUnitVector3U8::from_array(unit_vector).to_array(),
             expected_avg_error,
+            expected_max_error,
         );
     }
 
-    fn test_error_rate_impl<F>(codec: F, expected_avg_error: f32)
+    fn test_error_rate_impl<F>(codec: F, expected_avg_error: f32, expected_max_error: f32)
     where
         F: Fn([f32; 3]) -> [f32; 3],
     {
         let count = 100000;
         let unit_vectors = generate_unit_vectors(count);
 
-        let mut error_x = 0.0;
-        let mut error_y = 0.0;
-        let mut error_z = 0.0;
+        let mut acc_error_x: f32 = 0.0;
+        let mut acc_error_y: f32 = 0.0;
+        let mut acc_error_z: f32 = 0.0;
+        let mut max_error_x: f32 = 0.0;
+        let mut max_error_y: f32 = 0.0;
+        let mut max_error_z: f32 = 0.0;
 
         for unit_vector in unit_vectors {
             let decoded = codec(unit_vector);
 
-            error_x += ((unit_vector[0] - decoded[0]) / unit_vector[0]).abs();
-            error_y += ((unit_vector[1] - decoded[1]) / unit_vector[1]).abs();
-            error_z += ((unit_vector[2] - decoded[2]) / unit_vector[2]).abs();
+            let error_x = ((unit_vector[0] - decoded[0]) / unit_vector[0]).abs();
+            acc_error_x += error_x;
+            max_error_x = max_error_x.max(error_x);
+
+            let error_y = ((unit_vector[1] - decoded[1]) / unit_vector[1]).abs();
+            acc_error_y += error_y;
+            max_error_y = max_error_y.max(error_y);
+
+            let error_z = ((unit_vector[2] - decoded[2]) / unit_vector[2]).abs();
+            acc_error_z += error_z;
+            max_error_z = max_error_z.max(error_z);
         }
 
-        error_x /= count as f32;
-        error_y /= count as f32;
-        error_z /= count as f32;
+        acc_error_x /= count as f32;
+        acc_error_y /= count as f32;
+        acc_error_z /= count as f32;
 
-        let avg_error = length_2([error_x, error_y, error_z]).sqrt();
+        let avg_error = length_2([acc_error_x, acc_error_y, acc_error_z]).sqrt();
         assert_eq!(avg_error, expected_avg_error);
+
+        let max_error = length_2([max_error_x, max_error_y, max_error_z]).sqrt();
+        assert_eq!(max_error, expected_max_error);
     }
 
     fn generate_unit_vectors(count: usize) -> Vec<[f32; 3]> {
