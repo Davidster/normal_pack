@@ -82,6 +82,9 @@ mod float16 {
     }
 }
 
+#[cfg(feature = "half")]
+pub use float16::EncodedUnitVector3F16;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct EncodedUnitVector3U8([u8; 2]);
@@ -114,9 +117,6 @@ impl EncodedUnitVector3U8 {
         (from as f32 / 255.0) * 2.0 - 1.0
     }
 }
-
-#[cfg(feature = "half")]
-pub use float16::EncodedUnitVector3F16;
 
 #[inline]
 fn length_2(v: [f32; 3]) -> f32 {
@@ -181,14 +181,12 @@ mod tests {
 
         for unit_vector in unit_vectors {
             let decoded = codec(unit_vector);
-
             let error = angle_between(unit_vector, decoded);
             acc_error += error;
             max_error = max_error.max(error);
         }
 
         let avg_error = acc_error / sample_size as f32;
-        // dbg!(avg_error, acc_error, sample_size);
 
         assert_eq!(max_error, expected_max_error);
         assert_eq!(avg_error, expected_avg_error);
