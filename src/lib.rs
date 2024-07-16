@@ -7,6 +7,7 @@
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
 pub struct EncodedUnitVector3([f32; 2]);
 
 impl EncodedUnitVector3 {
@@ -59,6 +60,7 @@ mod float16 {
     #[repr(C)]
     #[derive(Copy, Clone, Debug, PartialEq)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
     pub struct EncodedUnitVector3F16([f16; 2]);
 
     impl EncodedUnitVector3F16 {
@@ -90,6 +92,7 @@ pub use float16::EncodedUnitVector3F16;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
 pub struct EncodedUnitVector3U8([u8; 2]);
 
 impl EncodedUnitVector3U8 {

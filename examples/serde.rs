@@ -21,11 +21,11 @@ mod example {
 
         let json_string = serde_json::to_string_pretty(&vertex).unwrap();
         let parsed: Vertex = serde_json::from_str(&json_string).unwrap();
-        let decoded = vertex.normal.to_array();
+        let decoded_normal = parsed.normal.to_array();
 
         println!("JSON: {json_string}");
         println!("Parsed: {parsed:#?}");
-        println!("Decoded normal: {decoded:#?}");
+        println!("Parsed normal: {decoded_normal:#?}");
     }
 }
 
