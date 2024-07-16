@@ -5,10 +5,17 @@ edition = "2021"
 
 [features]
 half = ["dep:half"]
+serde = ["dep:serde", "half/serde"]
 
 [dependencies]
 half = { version = "2.4.1", optional = true }
+serde = { version = "1.0", optional = true, default-features = false, features = [
+  "derive",
+] }
 
 [dev-dependencies]
 rand = "0.8.5"
 rand_chacha = "0.3.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+static_assertions = "1.1.0"

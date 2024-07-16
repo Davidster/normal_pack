@@ -1,15 +1,16 @@
-// TODO: add feature for serde, bytemuck and zerocopy support
+// TODO: add feature for bytemuck and zerocopy support
 // TODO: add docs
 // TODO: add license
 // TODO: add wgsl test
 // TODO: add examples
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EncodedUnitVector3([f32; 2]);
 
 impl EncodedUnitVector3 {
-    pub fn from_array(unit_vector: [f32; 3]) -> Self {
+    pub fn new(unit_vector: [f32; 3]) -> Self {
         let mut n = unit_vector;
 
         debug_assert!(
@@ -56,12 +57,13 @@ mod float16 {
     use crate::EncodedUnitVector3;
 
     #[repr(C)]
-    #[derive(Copy, Clone, Debug, Default, PartialEq)]
+    #[derive(Copy, Clone, Debug, PartialEq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct EncodedUnitVector3F16([f16; 2]);
 
     impl EncodedUnitVector3F16 {
-        pub fn from_array(unit_vector: [f32; 3]) -> Self {
-            let encoded_f32 = EncodedUnitVector3::from_array(unit_vector);
+        pub fn new(unit_vector: [f32; 3]) -> Self {
+            let encoded_f32 = EncodedUnitVector3::new(unit_vector);
             Self([
                 f16::from_f32(encoded_f32.0[0]),
                 f16::from_f32(encoded_f32.0[1]),
@@ -86,12 +88,13 @@ mod float16 {
 pub use float16::EncodedUnitVector3F16;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EncodedUnitVector3U8([u8; 2]);
 
 impl EncodedUnitVector3U8 {
-    pub fn from_array(unit_vector: [f32; 3]) -> Self {
-        let encoded_f32 = EncodedUnitVector3::from_array(unit_vector);
+    pub fn new(unit_vector: [f32; 3]) -> Self {
+        let encoded_f32 = EncodedUnitVector3::new(unit_vector);
         Self([Self::to_u8(encoded_f32.0[0]), Self::to_u8(encoded_f32.0[1])])
     }
 
@@ -140,7 +143,7 @@ mod tests {
         let expected_avg_error = 1.0932611e-5;
         let expected_max_error = 0.00048828125;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3::from_array(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3::new(unit_vector).to_array(),
             expected_avg_error,
             expected_max_error,
         );
@@ -152,7 +155,7 @@ mod tests {
         let expected_avg_error = 0.00013977697;
         let expected_max_error = 0.001035801;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3F16::from_array(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3F16::new(unit_vector).to_array(),
             expected_avg_error,
             expected_max_error,
         );
@@ -163,7 +166,7 @@ mod tests {
         let expected_avg_error = 0.01223357;
         let expected_max_error = 0.03299934;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3U8::from_array(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3U8::new(unit_vector).to_array(),
             expected_avg_error,
             expected_max_error,
         );
