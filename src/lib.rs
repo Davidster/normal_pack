@@ -1,4 +1,4 @@
-// TODO: add feature for bytemuck and zerocopy support
+// TODO: add feature for zerocopy support
 // TODO: add docs
 // TODO: add license
 // TODO: add wgsl test
