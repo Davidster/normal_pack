@@ -1,11 +1,11 @@
 use static_assertions::assert_cfg;
 
-assert_cfg!(feature = "bytemuck", "The \"bytemuck\" feature must be enabled for this example to work. Try adding --features=\"bytemuck\"");
+assert_cfg!(feature = "zerocopy", "The \"zerocopy\" feature must be enabled for this example to work. Try adding --features=\"zerocopy\"");
 
-#[cfg(feature = "bytemuck")]
+#[cfg(feature = "zerocopy")]
 mod example {
     #[repr(C)]
-    #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+    #[derive(Debug, Copy, Clone, zerocopy::AsBytes, zerocopy:: FromBytes)]
     struct Vertex {
         normal: normal_pack::EncodedUnitVector3F16,
     }
@@ -17,8 +17,8 @@ mod example {
             normal: normal_pack::EncodedUnitVector3F16::new(normal),
         };
 
-        let bytes: [u8; 4] = bytemuck::cast(vertex);
-        let recasted: Vertex = bytemuck::cast(bytes);
+        let bytes: [u8; 4] = zerocopy::transmute!(vertex);
+        let recasted: Vertex = zerocopy::transmute!(bytes);
         let decoded_normal = recasted.normal.to_array();
 
         println!("Bytes: {bytes:?}");
@@ -28,6 +28,6 @@ mod example {
 }
 
 fn main() {
-    #[cfg(feature = "bytemuck")]
+    #[cfg(feature = "zerocopy")]
     example::run();
 }

@@ -1,11 +1,15 @@
 use static_assertions::assert_cfg;
 
-assert_cfg!(feature = "bytemuck", "The \"bytemuck\" feature must be enabled for this example to work. Try adding --features=\"bytemuck\"");
+assert_cfg!(
+    feature = "rkyv",
+    "The \"rkyv\" feature must be enabled for this example to work. Try adding --features=\"rkyv\""
+);
 
-#[cfg(feature = "bytemuck")]
+#[cfg(feature = "rkyv")]
 mod example {
-    #[repr(C)]
-    #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+    use rkyv::Deserialize;
+
+    #[derive(Debug, rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)]
     struct Vertex {
         normal: normal_pack::EncodedUnitVector3F16,
     }
@@ -17,8 +21,9 @@ mod example {
             normal: normal_pack::EncodedUnitVector3F16::new(normal),
         };
 
-        let bytes: [u8; 4] = bytemuck::cast(vertex);
-        let recasted: Vertex = bytemuck::cast(bytes);
+        let bytes = rkyv::to_bytes::<_, 4>(&vertex).unwrap();
+        let archived = unsafe { rkyv::archived_root::<Vertex>(&bytes[..]) };
+        let recasted: Vertex = archived.deserialize(&mut rkyv::Infallible).unwrap();
         let decoded_normal = recasted.normal.to_array();
 
         println!("Bytes: {bytes:?}");
@@ -28,6 +33,6 @@ mod example {
 }
 
 fn main() {
-    #[cfg(feature = "bytemuck")]
+    #[cfg(feature = "rkyv")]
     example::run();
 }

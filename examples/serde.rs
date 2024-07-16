@@ -4,19 +4,16 @@ assert_cfg!(feature = "serde", "The \"serde\" feature must be enabled for this e
 
 #[cfg(feature = "serde")]
 mod example {
-    use normal_pack::EncodedUnitVector3F16;
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, serde::Serialize, serde::Deserialize)]
     struct Vertex {
-        normal: EncodedUnitVector3F16,
+        normal: normal_pack::EncodedUnitVector3F16,
     }
 
     pub fn run() {
         let normal = [-0.5082557, 0.54751796, 0.6647558];
 
         let vertex = Vertex {
-            normal: EncodedUnitVector3F16::new(normal),
+            normal: normal_pack::EncodedUnitVector3F16::new(normal),
         };
 
         let json_string = serde_json::to_string_pretty(&vertex).unwrap();

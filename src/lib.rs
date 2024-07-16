@@ -1,4 +1,3 @@
-// TODO: add feature for zerocopy support
 // TODO: add docs
 // TODO: add license
 // TODO: add wgsl test
@@ -6,8 +5,13 @@
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[cfg_attr(feature = "zerocopy", derive(zerocopy::AsBytes, zerocopy::FromBytes))]
 pub struct EncodedUnitVector3([f32; 2]);
 
 impl EncodedUnitVector3 {
@@ -59,8 +63,13 @@ mod float16 {
 
     #[repr(C)]
     #[derive(Copy, Clone, Debug, PartialEq)]
+    #[cfg_attr(
+        feature = "rkyv",
+        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+    )]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+    #[cfg_attr(feature = "zerocopy", derive(zerocopy::AsBytes, zerocopy::FromBytes))]
     pub struct EncodedUnitVector3F16([f16; 2]);
 
     impl EncodedUnitVector3F16 {
@@ -91,8 +100,13 @@ pub use float16::EncodedUnitVector3F16;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+#[cfg_attr(feature = "zerocopy", derive(zerocopy::AsBytes, zerocopy::FromBytes))]
 pub struct EncodedUnitVector3U8([u8; 2]);
 
 impl EncodedUnitVector3U8 {
@@ -175,11 +189,13 @@ mod tests {
         );
     }
 
+    /// Loop through 100k unit vectors that are randomly distributed around the unit sphere
+    /// and calculate the (max and average) error via the angle between the initial and decoded vector
     fn test_error_rate_impl<F>(codec: F, expected_avg_error: f32, expected_max_error: f32)
     where
         F: Fn([f32; 3]) -> [f32; 3],
     {
-        let sample_size = 100000;
+        let sample_size = 100_000;
         let unit_vectors = generate_unit_vectors(sample_size);
 
         let mut acc_error: f32 = 0.0;
