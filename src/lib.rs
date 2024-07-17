@@ -1,6 +1,6 @@
 // TODO: add docs
 // TODO: add license
-// TODO: add wgsl test
+// TODO: cleanup shaders
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -229,10 +229,9 @@ mod tests {
     }
 
     fn angle_between(v1: [f32; 3], v2: [f32; 3]) -> f32 {
-        let result = ((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2])
+        ((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2])
             / (length_2(v1).sqrt() * length_2(v2).sqrt()))
         .clamp(-1.0, 1.0)
-        .acos();
-        result
+        .acos()
     }
 }
