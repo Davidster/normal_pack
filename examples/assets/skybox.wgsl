@@ -34,9 +34,9 @@ var skybox_sampler: sampler;
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let col = textureSample(skybox_texture, skybox_sampler, world_normal_to_cubemap_vec(in.world_position));
-    // return vec4<f32>(col.xyz, 1.0);
+    return vec4<f32>(col.xyz, 1.0);
     // return vec4<f32>(in.world_position, 1.0);
-    return in.clip_position / in.clip_position.w;
+    // return in.clip_position / in.clip_position.w;
 }
 
 fn world_normal_to_cubemap_vec(world_pos: vec3<f32>) -> vec3<f32> {

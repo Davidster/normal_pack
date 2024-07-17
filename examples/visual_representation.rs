@@ -64,7 +64,7 @@ pub struct ShaderObject {
 
 async fn run_example() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::DX12,
+        backends: wgpu::Backends::PRIMARY,
         ..Default::default()
     });
 
@@ -385,6 +385,22 @@ async fn run_example() {
             ],
         });
 
+    let cube_mesh = load_mesh(include_bytes!("assets/cube.obj"));
+
+    dbg!(&cube_mesh.vertices);
+    dbg!(&cube_mesh.indices);
+
+    let cube_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Cube Vertex Buffer"),
+        contents: &bytemuck::cast_slice(&cube_mesh.vertices),
+        usage: wgpu::BufferUsages::VERTEX,
+    });
+    let cube_index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Cube Index Buffer"),
+        contents: &bytemuck::cast_slice(&cube_mesh.indices),
+        usage: wgpu::BufferUsages::INDEX,
+    });
+
     let teapot_mesh = load_mesh(include_bytes!("assets/teapot.obj"));
 
     let teapot_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -396,21 +412,6 @@ async fn run_example() {
         label: Some("Teapot Index Buffer"),
         contents: &bytemuck::cast_slice(&teapot_mesh.indices),
         usage: wgpu::BufferUsages::VERTEX,
-    });
-
-    let cube_mesh = load_mesh(include_bytes!("assets/cube.obj"));
-
-    dbg!(&cube_mesh.vertices);
-
-    let cube_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Cube Vertex Buffer"),
-        contents: &bytemuck::cast_slice(&cube_mesh.vertices),
-        usage: wgpu::BufferUsages::VERTEX,
-    });
-    let cube_index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Cube Index Buffer"),
-        contents: &bytemuck::cast_slice(&cube_mesh.indices),
-        usage: wgpu::BufferUsages::INDEX,
     });
 
     let (skybox_cubemap_raw, skybox_cubemap_size) = load_cubemap(
@@ -469,7 +470,9 @@ async fn run_example() {
         ],
     });
 
-    for _ in 0..20 {
+    device.start_capture();
+
+    for _ in 0..5 {
         let mut encoder =
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
@@ -507,8 +510,10 @@ async fn run_example() {
         queue.submit(std::iter::once(encoder.finish()));
 
         println!("Sleeping...");
-        std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
+        std::thread::sleep(std::time::Duration::from_secs_f32(0.01));
     }
+
+    device.stop_capture();
 
     let mut framebuffer_bytes = texture_to_bytes(&device, &queue, &framebuffer).await;
     let framebuffer_image_encoded = image::RgbaImage::from_raw(
@@ -518,7 +523,11 @@ async fn run_example() {
     )
     .unwrap();
 
+    println!("Done");
+
     framebuffer_image_encoded.save("out.png").unwrap();
+
+    std::thread::sleep(std::time::Duration::from_secs_f32(20.0));
 }
 
 pub fn make_perspective_proj_matrix(
@@ -603,6 +612,8 @@ fn load_mesh(obj_file_bytes: &[u8]) -> BasicMesh {
             }
         }
     }
+
+    dbg!();
 
     let mut composite_index_map: HashMap<(usize, usize, usize), ShaderVertex> = HashMap::new();
     triangles.iter().for_each(|triangle_vertices| {
