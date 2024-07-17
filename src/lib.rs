@@ -1,7 +1,6 @@
 // TODO: add docs
 // TODO: add license
 // TODO: add wgsl test
-// TODO: add examples
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
