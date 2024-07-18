@@ -7,6 +7,7 @@ depending on which representation is chosen.
 
 ### Example:
 
+rust
 ```
 let normal = [-0.5082557, 0.54751796, 0.6647558];
 
@@ -14,7 +15,6 @@ let encoded = normal_pack::EncodedUnitVector3U8::encode(normal);
 let decoded = encoded.decode();
 
 assert_eq!(decoded, [-0.52032965, 0.5473598, 0.6554802]);
-
 ```
 
 ### Why compress my normals?

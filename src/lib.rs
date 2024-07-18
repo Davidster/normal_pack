@@ -12,7 +12,6 @@
 //! let decoded = encoded.decode();
 //!
 //! assert_eq!(decoded, [-0.52032965, 0.5473598, 0.6554802]);
-//!
 //! ```
 //!
 //! #### Why compress my normals?
