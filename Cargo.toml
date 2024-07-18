@@ -47,3 +47,6 @@ glam = { version = "0.28.0", features = ["bytemuck"] }
 obj-rs = "0.7.1"
 image = "0.25.1"
 futures-intrusive = "0.5.0"
+
+[package.metadata.docs.rs]
+features = ["half"]

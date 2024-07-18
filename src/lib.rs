@@ -32,8 +32,6 @@
 //! *The skybox used in the example is the work of Emil Persson, aka Humus. [http://www.humus.name](http://www.humus.name)*
 //!
 
-// TODO: add license
-
 /// A unit vector packed into an [f32; 2]
 ///
 /// See the [module-level documentation](./index.html) for more details.
