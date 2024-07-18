@@ -2,6 +2,15 @@
 name = "normal_pack"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.60.0"
+authors = ["David Huculak https://github.com/Davidster"]
+description = "Compresses normal vectors (or any 3D unit vector) using Octahedron encoding."
+repository = "github.com/Davidster/normal_pack"
+readme = "README.md"
+license = "MIT"
+categories = ["encoding"]
+keywords = ["normal", "vector", "compress"]
+exclude = ["Cargo.lock", "examples"]
 
 [features]
 half = ["dep:half"]
@@ -31,8 +40,7 @@ bytemuck = { version = "1.16.1", features = ["derive"] }
 zerocopy = { version = "0.6.6" }
 rkyv = { version = "0.7" }
 
-# visual_representation example deps:
-# wgpu = "0.20.1"
+# teapot example deps:
 wgpu = { version = "0.20.1", features = ["trace"] }
 pollster = "0.3.0"
 glam = { version = "0.28.0", features = ["bytemuck"] }
