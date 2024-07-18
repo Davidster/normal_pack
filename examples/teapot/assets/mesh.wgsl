@@ -1,20 +1,15 @@
-fn oct_wrap(v: vec2<f32>) -> vec2<f32> {
-    return ( 1.0 - abs( v.yx ) ) * ( select(vec2(-1.0), vec2(1.0), v.xy >= vec2(0.0)) );
+fn oct_decode_unit_vector_float(encoded: vec2<f32>) -> vec3<f32> {
+    let abs = abs(encoded);
+    let z = 1.0 - abs.x - abs.y;
+    let t = vec2(max(-z, 0.0));
+    return vec3(
+        encoded + select(t, -t, encoded >= vec2(0)),
+        z
+    );
 }
 
-// TODO: proofread, and consider using twitter technique
-fn oct_decode_unit_vector_float(in: vec2<f32>) -> vec3<f32> {
-    var encN = in;
-
-    var n: vec3<f32>;
-    n.z = 1.0 - abs( encN.x ) - abs( encN.y );
-    n = vec3(select(oct_wrap( encN.xy ), encN.xy, n.z >= 0.0), n.z);
-    n = normalize( n );
-    return n;
-}
-
-fn oct_decode_unit_vector_u8(in: vec2<u32>) -> vec3<f32> {
-    return oct_decode_unit_vector_float((vec2<f32>(in) / 255.0) * vec2(2.0) - vec2(1.0));
+fn oct_decode_unit_vector_u8(encoded: vec2<u32>) -> vec3<f32> {
+    return oct_decode_unit_vector_float((vec2<f32>(encoded) / 255.0) * vec2(2.0) - vec2(1.0));
 }
 
 struct CameraUniform {

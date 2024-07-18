@@ -86,9 +86,9 @@ impl Mesh {
                         position: glam::Vec3::from([pos.0, pos.1, pos.2]),
                         normal: glam::Vec3::from(normal),
                         tex_coords: glam::Vec2::from([uv.0, 1.0 - uv.1]), // convert uv format into 0->1 range
-                        normal_packed: normal_pack::EncodedUnitVector3::new(normal),
-                        normal_packed_f16: normal_pack::EncodedUnitVector3F16::new(normal),
-                        normal_packed_u8: normal_pack::EncodedUnitVector3U8::new(normal),
+                        normal_packed: normal_pack::EncodedUnitVector3::encode(normal),
+                        normal_packed_f16: normal_pack::EncodedUnitVector3F16::encode(normal),
+                        normal_packed_u8: normal_pack::EncodedUnitVector3U8::encode(normal),
                         padding: Default::default(),
                     });
                 }

@@ -44,6 +44,7 @@ async fn run_example() {
         glam::Vec3::new(24.0, 0.0, 0.0),
     );
 
+    // The skybox is the work of Emil Persson, aka Humus. [http://www.humus.name](http://www.humus.name)
     let skybox = Skybox::load_from_cubemap_faces(
         &renderer.device,
         &renderer.queue,

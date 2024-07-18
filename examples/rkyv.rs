@@ -18,13 +18,13 @@ mod example {
         let normal = [-0.5082557, 0.54751796, 0.6647558];
 
         let vertex = Vertex {
-            normal: normal_pack::EncodedUnitVector3F16::new(normal),
+            normal: normal_pack::EncodedUnitVector3F16::encode(normal),
         };
 
         let bytes = rkyv::to_bytes::<_, 4>(&vertex).unwrap();
         let archived = unsafe { rkyv::archived_root::<Vertex>(&bytes[..]) };
         let recasted: Vertex = archived.deserialize(&mut rkyv::Infallible).unwrap();
-        let decoded_normal = recasted.normal.to_array();
+        let decoded_normal = recasted.normal.decode();
 
         println!("Bytes: {bytes:?}");
         println!("Recasted: {recasted:?}");

@@ -13,12 +13,12 @@ mod example {
         let normal = [-0.5082557, 0.54751796, 0.6647558];
 
         let vertex = Vertex {
-            normal: normal_pack::EncodedUnitVector3F16::new(normal),
+            normal: normal_pack::EncodedUnitVector3F16::encode(normal),
         };
 
         let json_string = serde_json::to_string_pretty(&vertex).unwrap();
         let parsed: Vertex = serde_json::from_str(&json_string).unwrap();
-        let decoded_normal = parsed.normal.to_array();
+        let decoded_normal = parsed.normal.decode();
 
         println!("JSON: {json_string}");
         println!("Parsed: {parsed:#?}");

@@ -1,7 +1,43 @@
-// TODO: add docs
-// TODO: add license
-// TODO: cleanup shaders
+//! Compresses normal vectors (or any 3D unit vector) using [Octahedron encoding](https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/).
+//!
+//! This lossy compression scheme is able to achieve a compression ratio as high as 6:1 with an average error rate of less than 1 degree,
+//! depending on which representation is chosen.
+//!
+//! #### Example:
+//!
+//! ```
+//! let normal = [-0.5082557, 0.54751796, 0.6647558];
+//!
+//! let encoded = normal_pack::EncodedUnitVector3U8::encode(normal);
+//! let decoded = encoded.decode();
+//!
+//! assert_eq!(decoded, [-0.52032965, 0.5473598, 0.6554802]);
+//!
+//! ```
+//!
+//! #### Why compress my normals?
+//!
+//! It is common for 3D renderers to be bottlenecked by memory bandwidth, such as when loading normals from VRAM for high-poly meshes to supply to your vertex shader.
+//! A smaller memory footprint for your normals corresponds to memory bandwidth savings and higher FPS in such scenarios.
+//!
+//! #### How bad is 1 degree of error?
+//!
+//! The `teapot` example generates a reference visual and contains the wgsl code required to decode the vector in a shader.
+//!
+//! ##### Standard [f32; 3] representation
+//! ![teapot_packed_u8](https://github.com/user-attachments/assets/b16818d0-8020-477a-b6ec-99966eb1ae85)
+//!
+//! ##### Packed into a [u8; 2]
+//! ![teapot_no_packing](https://github.com/user-attachments/assets/6e6ab8ad-37da-4be0-b8ef-e17c0ae9614f)
+//!
+//! *The skybox used in the example is the work of Emil Persson, aka Humus. [http://www.humus.name](http://www.humus.name)*
+//!
 
+// TODO: add license
+
+/// A unit vector packed into an [f32; 2]
+///
+/// See the [module-level documentation](./index.html) for more details.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(
@@ -14,7 +50,8 @@
 pub struct EncodedUnitVector3([f32; 2]);
 
 impl EncodedUnitVector3 {
-    pub fn new(unit_vector: [f32; 3]) -> Self {
+    /// Encodes the unit vector, stores the result in a new instance of this struct and returns it
+    pub fn encode(unit_vector: [f32; 3]) -> Self {
         let mut n = unit_vector;
 
         debug_assert!(
@@ -33,11 +70,8 @@ impl EncodedUnitVector3 {
         Self([n[0], n[1]])
     }
 
-    pub fn from_raw(raw: [f32; 2]) -> Self {
-        Self(raw)
-    }
-
-    pub fn to_array(&self) -> [f32; 3] {
+    /// Decodes the unit vector and returns the result
+    pub fn decode(&self) -> [f32; 3] {
         let x = self.0[0];
         let y = self.0[1];
         let z = 1.0 - x.abs() - y.abs();
@@ -49,6 +83,12 @@ impl EncodedUnitVector3 {
         ])
     }
 
+    /// Stores the raw, encoded value in a new instance of this struct and returns it
+    pub fn from_raw(raw: [f32; 2]) -> Self {
+        Self(raw)
+    }
+
+    /// Returns the raw, encoded value stored by this struct
     pub fn raw(&self) -> [f32; 2] {
         self.0
     }
@@ -60,6 +100,9 @@ mod float16 {
 
     use crate::EncodedUnitVector3;
 
+    /// A unit vector packed into a [[`half::f16`][half::f16]; 2]
+    ///
+    /// See the [module-level documentation](./index.html) for more details.
     #[repr(C)]
     #[derive(Copy, Clone, Debug, PartialEq)]
     #[cfg_attr(
@@ -72,22 +115,26 @@ mod float16 {
     pub struct EncodedUnitVector3F16([f16; 2]);
 
     impl EncodedUnitVector3F16 {
-        pub fn new(unit_vector: [f32; 3]) -> Self {
-            let encoded_f32 = EncodedUnitVector3::new(unit_vector);
+        /// Encodes the unit vector, stores the result in a new instance of this struct and returns it
+        pub fn encode(unit_vector: [f32; 3]) -> Self {
+            let encoded_f32 = EncodedUnitVector3::encode(unit_vector);
             Self([
                 f16::from_f32(encoded_f32.0[0]),
                 f16::from_f32(encoded_f32.0[1]),
             ])
         }
 
+        /// Decodes the unit vector and returns the result
+        pub fn decode(&self) -> [f32; 3] {
+            EncodedUnitVector3::from_raw([self.0[0].to_f32(), self.0[1].to_f32()]).decode()
+        }
+
+        /// Stores the raw, encoded value in a new instance of this struct and returns it
         pub fn from_raw(raw: [f16; 2]) -> Self {
             Self(raw)
         }
 
-        pub fn to_array(&self) -> [f32; 3] {
-            EncodedUnitVector3::from_raw([self.0[0].to_f32(), self.0[1].to_f32()]).to_array()
-        }
-
+        /// Returns the raw, encoded value stored by this struct
         pub fn raw(&self) -> [f16; 2] {
             self.0
         }
@@ -97,6 +144,9 @@ mod float16 {
 #[cfg(feature = "half")]
 pub use float16::EncodedUnitVector3F16;
 
+/// A unit vector packed into a [u8; 2]
+///
+/// See the [module-level documentation](./index.html) for more details.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[cfg_attr(
@@ -109,19 +159,23 @@ pub use float16::EncodedUnitVector3F16;
 pub struct EncodedUnitVector3U8([u8; 2]);
 
 impl EncodedUnitVector3U8 {
-    pub fn new(unit_vector: [f32; 3]) -> Self {
-        let encoded_f32 = EncodedUnitVector3::new(unit_vector);
+    /// Encodes the unit vector, stores the result in a new instance of this struct and returns it
+    pub fn encode(unit_vector: [f32; 3]) -> Self {
+        let encoded_f32 = EncodedUnitVector3::encode(unit_vector);
         Self([Self::to_u8(encoded_f32.0[0]), Self::to_u8(encoded_f32.0[1])])
     }
 
+    /// Decodes the unit vector and returns the result
+    pub fn decode(&self) -> [f32; 3] {
+        EncodedUnitVector3([Self::to_f32(self.0[0]), Self::to_f32(self.0[1])]).decode()
+    }
+
+    /// Stores the raw, encoded value in a new instance of this struct and returns it
     pub fn from_raw(raw: [u8; 2]) -> Self {
         Self(raw)
     }
 
-    pub fn to_array(&self) -> [f32; 3] {
-        EncodedUnitVector3([Self::to_f32(self.0[0]), Self::to_f32(self.0[1])]).to_array()
-    }
-
+    /// Returns the raw, encoded value stored by this struct
     pub fn raw(&self) -> [u8; 2] {
         self.0
     }
@@ -159,7 +213,7 @@ mod tests {
         let expected_avg_error = 1.0932611e-5;
         let expected_max_error = 0.00048828125;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3::new(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3::encode(unit_vector).decode(),
             expected_avg_error,
             expected_max_error,
         );
@@ -171,7 +225,7 @@ mod tests {
         let expected_avg_error = 0.00013977697;
         let expected_max_error = 0.001035801;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3F16::new(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3F16::encode(unit_vector).decode(),
             expected_avg_error,
             expected_max_error,
         );
@@ -182,14 +236,14 @@ mod tests {
         let expected_avg_error = 0.01223357;
         let expected_max_error = 0.03299934;
         test_error_rate_impl(
-            |unit_vector| crate::EncodedUnitVector3U8::new(unit_vector).to_array(),
+            |unit_vector| crate::EncodedUnitVector3U8::encode(unit_vector).decode(),
             expected_avg_error,
             expected_max_error,
         );
     }
 
     /// Loop through 100k unit vectors that are randomly distributed around the unit sphere
-    /// and calculate the (max and average) error via the angle between the initial and decoded vector
+    /// and calculate the error in radians via the angle between the initial and decoded vector
     fn test_error_rate_impl<F>(codec: F, expected_avg_error: f32, expected_max_error: f32)
     where
         F: Fn([f32; 3]) -> [f32; 3],
