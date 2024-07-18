@@ -7,8 +7,7 @@ depending on which representation is chosen.
 
 ### Example:
 
-rust
-```
+```rust
 let normal = [-0.5082557, 0.54751796, 0.6647558];
 
 let encoded = normal_pack::EncodedUnitVector3U8::encode(normal);
