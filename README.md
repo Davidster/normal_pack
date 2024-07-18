@@ -34,6 +34,6 @@ The `teapot` example generates a reference visual and contains the wgsl code req
 
 ##### As a video
 
-![normal_pack_error](https://github.com/user-attachments/assets/c4070012-9b8d-4573-bc18-f02f54101c67)
+[normal_pack_error](https://github.com/user-attachments/assets/c4070012-9b8d-4573-bc18-f02f54101c67)
 
 *The skybox used in the example is the work of Emil Persson, aka Humus. [http://www.humus.name](http://www.humus.name)*
