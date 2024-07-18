@@ -1,6 +1,6 @@
 ## Compresses normal vectors (or any 3D unit vector) using [Octahedron encoding](https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/).
 
-[![Crates.io](https://img.shields.io/crates/v/normal_pack.svg)](https://crates.io/crates/normal_pack/) [![Documentation](https://docs.rs/normal_pack/badge.svg)](https://docs.rs/normal_pack/) ![Crates.io](https://img.shields.io/crates/l/normal_pack)
+[![Crates.io](https://img.shields.io/crates/v/normal_pack.svg)](https://crates.io/crates/normal_pack/) [![Documentation](https://docs.rs/normal_pack/badge.svg)](https://docs.rs/normal_pack/) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 
 This lossy compression scheme is able to achieve a compression ratio as high as 6:1 with an average error rate of less than 1 degree,
 depending on which representation is chosen.
