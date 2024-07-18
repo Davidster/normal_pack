@@ -97,7 +97,7 @@ mod float16 {
 
     use crate::EncodedUnitVector3;
 
-    /// A unit vector packed into a [[`half::f16`][half::f16]; 2]
+    /// A unit vector packed into a [[`half::f16`][half::f16]; 2]. The `half` feature must be enabled to use it.
     ///
     /// See the [module-level documentation](./index.html) for more details.
     #[repr(C)]
